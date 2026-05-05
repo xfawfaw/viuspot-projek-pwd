@@ -16,7 +16,9 @@ $stmt = $pdo->query("SELECT COUNT(*) as total FROM categories");
 $total_cats = $stmt->fetch()['total'];
 
 // Fetch popular destinations (top 3)
-$popular_places = array_slice(get_all_places($pdo, 'approved'), 0, 3);
+$stmt = $pdo->prepare("SELECT * FROM places WHERE name IN ('Malioboro', 'Gunung Merbabu', 'Gunung Prau') AND status = 'approved' LIMIT 3");
+$stmt->execute();
+$popular_places = $stmt->fetchAll();
 
 // Fetch recent reviews
 $recent_reviews = get_recent_reviews($pdo, 4);
@@ -68,7 +70,7 @@ $weather = get_weather_for_place($pdo, 0, 'Indonesia');
         <p>Pilih kategori destinasi sesuai minat perjalananmu</p>
     </div>
 
-    <div class="grid grid-5 mb-4">
+    <div class="grid grid-4 mb-4">
         <?php foreach ($categories_with_count as $cat): ?>
             <a href="index.php?category=<?php echo $cat['id']; ?>" class="category-card">
                 <div class="category-icon"><?php echo substr($cat['name'], 0, 2); ?></div>
@@ -98,7 +100,7 @@ $weather = get_weather_for_place($pdo, 0, 'Indonesia');
                 $rating = get_avg_rating($pdo, $place['id']);
             ?>
                 <article class="card">
-                    <div class="card-image" data-initial="<?php echo esc(substr($place['name'], 0, 1)); ?>"></div>
+                    <div class="card-image" style="background-image: url('assets/img/<?php echo esc($place['image_url']); ?>'); background-size: cover; background-position: center;"></div>
                     <div class="card-body">
                         <h3 class="card-title"><?php echo esc($place['name']); ?></h3>
                         <div class="card-meta">
@@ -139,7 +141,7 @@ $weather = get_weather_for_place($pdo, 0, 'Indonesia');
                 $crowd = get_latest_crowd($pdo, $place['id']);
             ?>
                 <article class="card">
-                    <div class="card-image" data-initial="<?php echo esc(substr($place['name'], 0, 1)); ?>">
+                    <div class="card-image" style="background-image: url('assets/img/<?php echo esc($place['image_url']); ?>'); background-size: cover; background-position: center;">
                         <?php if ($crowd): ?>
                             <span class="crowd-badge crowd-<?php echo $crowd['crowd_level']; ?>">
                                 <?php echo get_crowd_label($crowd['crowd_level']); ?>

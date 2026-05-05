@@ -67,9 +67,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <p class="text-center mt-2" style="font-size:0.9rem;">
                 Belum punya akun? <a href="register.php">Daftar sekarang</a>
             </p>
-            <p class="text-center mt-1" style="font-size:0.85rem; color:#7d8165;">
-                Admin demo: admin / password
-            </p>
         </div>
     </main>
 </body>

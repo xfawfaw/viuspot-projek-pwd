@@ -75,7 +75,7 @@ require_once 'includes/header.php';
 </section>
 
 <div class="container">
-    <div class="place-image" data-initial="<?php echo esc(substr($place['name'], 0, 1)); ?>">
+    <div class="place-image" style="background-image: url('assets/img/<?php echo esc($place['image_url']); ?>'); background-size: cover; background-position: center;">
     </div>
 
     <div class="place-info-grid">
