@@ -301,3 +301,8 @@ INSERT INTO forum_topics (user_id, user_name, title, content, destination, trave
 INSERT INTO crowd_reports (place_id, user_id, user_name, crowd_level, wait_time, notes) VALUES
 (5, NULL, 'Bromo Hunter', 'high', 90, 'Antrean jeep sangat panjang pagi ini. Saran datang lebih awal.'),
 (11, NULL, 'Heritage Lover', 'moderate', 15, 'Tiket masuk lancar. Area candi cukup ramai tapi nyaman.');
+
+
+-- ==============================================================================================
+-- JIKA INGIN MENAMBAH DATABSE, LAKUKAN UPDATE QUERY JANGAN MENGUBAH ATAU MENGHAPUS DATABASE INI
+-- ==============================================================================================
