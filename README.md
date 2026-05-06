@@ -1,4 +1,4 @@
-# VIUSPOT - Indonesian Tourism Information & Review System
+# VIUSPOT - Indonesian Information & Review System
 
 ## Deskripsi
 Viuspot adalah sistem informasi dan ulasan wisata berbasis web yang dikembangkan menggunakan PHP Native, HTML5, dan CSS3. Sistem ini menyediakan informasi destinasi wisata Indonesia, ulasan pengguna, perencanaan perjalanan, kalkulator budget, sistem badge & level, forum komunitas, integrasi cuaca, dan laporan keramaian.
@@ -61,7 +61,9 @@ Viuspot adalah sistem informasi dan ulasan wisata berbasis web yang dikembangkan
 ## Struktur Direktori
 ```
 viuspot/
-├── assets/css/style.css       # Stylesheet utama (responsive, CSS3 interactions)
+├── assets/
+    ├──css/style.css           # Stylesheet utama (responsive, CSS3 interactions)
+    ├──img/                    # Image
 ├── includes/
 │   ├── db.php                 # Koneksi database (PDO + MySQLi)
 │   ├── functions.php          # Fungsi helper, auth, badge, weather
@@ -92,12 +94,6 @@ viuspot/
 - Menggunakan prepared statements PDO untuk mencegah SQL Injection
 - Escape output menggunakan `htmlspecialchars()` untuk mencegah XSS
 - Session-based authentication dengan role checking
-
-## Batasan (Sesuai Requirement)
-- Tidak menggunakan JavaScript (interaksi hanya via CSS3 :hover, :active, :target)
-- Tidak menggunakan framework frontend/backend (React, Next.js, Laravel, dll.)
-- Animasi terbatas pada transformasi scale, opacity, shake
-- Tidak ada video background atau motion graphics kompleks
 
 ## Lisensi
 Project ini dibuat untuk tujuan akademik dan demonstrasi sistem informasi wisata.
