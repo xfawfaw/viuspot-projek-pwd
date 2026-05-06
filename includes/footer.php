@@ -7,13 +7,10 @@
                 <span class="footer-brand">Viuspot</span>
                 <p class="footer-copy" style="margin-top:.375rem;">&copy; 2026 Viuspot Indonesia</p>
             </div>
-            <nav class="footer-links">
-                <a href="<?php echo $prefix ?? ''; ?>index.php">Beranda</a>
-                <a href="<?php echo $prefix ?? ''; ?>planner.php">Planner</a>
-                <a href="<?php echo $prefix ?? ''; ?>budget.php">Budget</a>
-                <a href="<?php echo $prefix ?? ''; ?>community.php">Komunitas</a>
-                <a href="<?php echo $prefix ?? ''; ?>badges.php">Badges</a>
-            </nav>
+            <div class="footer-cs" style="text-align: right;">
+                <span style="display: block; font-size: 0.85rem; color: #7d8165; margin-bottom: 0.25rem;">Customer Service / Hubungi Kami:</span>
+                <a href="support@viuspot.id" style="font-weight: 600; color: #0f625c; text-decoration: none;">support@viuspot.id</a>
+            </div>
         </div>
     </footer>
 </body>

@@ -24,24 +24,24 @@ $flash = get_flash();
 
             <nav class="main-nav" id="main-nav">
                 <a href="<?php echo $prefix; ?>index.php"
-                   class="<?php echo $current_page === 'index.php' ? 'active' : ''; ?>">Beranda</a>
+                    class="<?php echo $current_page === 'index.php' ? 'active' : ''; ?>">Beranda</a>
                 <a href="<?php echo $prefix; ?>planner.php"
-                   class="<?php echo $current_page === 'planner.php' ? 'active' : ''; ?>">Planner</a>
+                    class="<?php echo $current_page === 'planner.php' ? 'active' : ''; ?>">Planner</a>
                 <a href="<?php echo $prefix; ?>budget.php"
-                   class="<?php echo $current_page === 'budget.php' ? 'active' : ''; ?>">Budget</a>
+                    class="<?php echo $current_page === 'budget.php' ? 'active' : ''; ?>">Budget</a>
                 <a href="<?php echo $prefix; ?>badges.php"
-                   class="<?php echo $current_page === 'badges.php' ? 'active' : ''; ?>">Badges</a>
+                    class="<?php echo $current_page === 'badges.php' ? 'active' : ''; ?>">Badges</a>
                 <a href="<?php echo $prefix; ?>community.php"
-                   class="<?php echo $current_page === 'community.php' ? 'active' : ''; ?>">Komunitas</a>
+                    class="<?php echo $current_page === 'community.php' ? 'active' : ''; ?>">Komunitas</a>
                 <?php if (is_admin()): ?>
                     <a href="<?php echo $prefix; ?>admin/dashboard.php"
-                       class="<?php echo str_contains($_SERVER['PHP_SELF'], '/admin/') ? 'active' : ''; ?>">Admin</a>
+                        class="<?php echo str_contains($_SERVER['PHP_SELF'], '/admin/') ? 'active' : ''; ?>">Admin</a>
                 <?php endif; ?>
                 <?php if (is_logged_in()): ?>
                     <a href="<?php echo $prefix; ?>logout.php">Logout&nbsp;(<?php echo esc(get_username()); ?>)</a>
                 <?php else: ?>
                     <a href="<?php echo $prefix; ?>login.php"
-                       class="btn-nav-cta <?php echo $current_page === 'login.php' ? 'active' : ''; ?>">Masuk</a>
+                        class="btn-nav-cta <?php echo $current_page === 'login.php' ? 'active' : ''; ?>">Masuk</a>
                 <?php endif; ?>
             </nav>
         </div>

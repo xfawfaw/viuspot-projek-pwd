@@ -64,9 +64,51 @@ $leaderboard = $stmt->fetchAll();
 require_once 'includes/header.php';
 ?>
 
+<style>
+.rank-icon {
+    width: 80px;
+    height: 80px;
+    fill: #ffffff;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+}
+
+.level-tourist { background: #8ea994 !important; }
+.level-backpacker { background: #5a6b57 !important; }
+.level-wanderer { background: #2e3b2c !important; }
+.level-explorer { background: #0f625c !important; }
+.level-legend {
+    background: #79d9ff !important;
+    position: relative;
+    box-shadow: 0 0 20px rgba(0, 180, 216, 0.4);
+    border: 1px solid #00b4d8;
+    animation: blueFirePulse 1.5s infinite alternate;
+}
+@keyframes blueFirePulse {
+    0% { box-shadow: 0 0 15px #00b4d8, 0 0 30px #0077b6, inset 0 0 10px #90e0ef; }
+    100% { box-shadow: 0 0 30px #00b4d8, 0 0 60px #03045e, inset 0 0 20px #caf0f8; }
+}
+
+</style>
+
+<?php
+$level_class = 'level-tourist';
+$lvl_name = strtolower($user_level['name'] ?? '');
+
+if (str_contains($lvl_name, 'backpacker')) {
+    $level_class = 'level-backpacker';
+} elseif (str_contains($lvl_name, 'wanderer')) {
+    $level_class = 'level-wanderer';
+} elseif (str_contains($lvl_name, 'legend')) {
+    $level_class = 'level-legend';
+} elseif (str_contains($lvl_name, 'explorer')) {
+    $level_class = 'level-explorer';
+}
+?>
+
 <div class="container">
     <?php if ($user_id): ?>
-        <div class="profile-badge-header">
+        <div class="profile-badge-header <?php echo $level_class; ?>">
             <svg class="rank-icon" viewBox="0 0 24 24"><path d="M12 1L9 9H1L7 14L4 22L12 17L20 22L17 14L25 9H15L12 1Z"/></svg>
             <h2 style="color: #fff; margin-bottom: 0.5rem;"><?php echo $user_level['name']; ?></h2>
             <p style="opacity: 0.9;"><?php echo $review_count; ?> Kontribusi Ulasan</p>
@@ -82,7 +124,7 @@ require_once 'includes/header.php';
                     </div>
                 </div>
             <?php else: ?>
-                <p style="margin-top:1.5rem; font-weight:600;">✨ Kamu telah mencapai level tertinggi!</p>
+                <p style="margin-top:1.5rem; font-weight:600;">Hormat Kepada Sepuhh, Hormat Puhh</p>
             <?php endif; ?>
         </div>
     <?php else: ?>
@@ -129,8 +171,8 @@ require_once 'includes/header.php';
             <tbody>
                 <?php foreach ($leaderboard as $idx => $user): 
                     $level = ['name' => 'Tourist'];
-                    if ($user['review_count'] >= 50) $level['name'] = 'Explorer Legend';
-                    elseif ($user['review_count'] >= 30) $level['name'] = 'Explorer';
+                    if ($user['review_count'] >= 80) $level['name'] = 'Explorer Legend';
+                    elseif ($user['review_count'] >= 45) $level['name'] = 'Explorer';
                     elseif ($user['review_count'] >= 15) $level['name'] = 'Wanderer';
                     elseif ($user['review_count'] >= 5) $level['name'] = 'Backpacker';
                 ?>

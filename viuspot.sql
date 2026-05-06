@@ -74,7 +74,19 @@ INSERT INTO `categories` (`id`, `name`, `slug`, `description`, `icon`) VALUES
 (7, 'Education', 'education', 'Museum dan tempat wisata edukasi', 'book'),
 (8, 'Shopping', 'shopping', 'Pusat perbelanjaan dan pasar tradisional', 'shopping-bag');
 
+<<<<<<< HEAD
 -- --------------------------------------------------------
+=======
+-- ============================================================
+-- SEED DATA: BADGES
+-- ============================================================
+INSERT INTO badges (name, description, min_reviews, icon) VALUES
+('Tourist', 'Pengguna baru yang mulai menjelajah', 1, 'user'),
+('Backpacker', 'Traveler aktif dengan 5+ ulasan', 5, 'backpack'),
+('Wanderer', 'Penjelajah dengan 15+ ulasan', 15, 'compass'),
+('Explorer', 'Petualang berpengalaman dengan 45+ ulasan', 45, 'map'),
+('Explorer Legend', 'Legenda wisata Indonesia dengan 80+ ulasan', 80, 'crown');
+>>>>>>> 8426c882c002aa92cd961302b3fef58a65029641
 
 --
 -- Table structure for table `crowd_reports`
