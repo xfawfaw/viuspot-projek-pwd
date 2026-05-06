@@ -213,6 +213,12 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: 3rem;
     position: relative;
     overflow: hidden;
+    width: 100vw;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    border-radius: 0;
 }
 .hero::before {
     content: '';

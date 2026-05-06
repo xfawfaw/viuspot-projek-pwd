@@ -37,7 +37,7 @@ $categories_with_count = $stmt->fetchAll();
 $weather = get_weather_for_place($pdo, 0, 'Indonesia');
 ?>
 
-<section class="hero">
+<section class="hero" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('assets/img/home.jpg'); background-size: cover; background-position: center; min-height: 80vh; margin: 0 auto; display: flex; align-items: center; border-radius: 24px;">
     <div class="container">
         <h1>Jelajahi Keindahan Indonesia</h1>
         <p>Viuspot adalah sistem informasi dan ulasan wisata terlengkap. Temukan destinasi, rencanakan perjalanan, dan bagikan pengalamanmu.</p>
