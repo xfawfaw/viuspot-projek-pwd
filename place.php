@@ -56,12 +56,133 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_crowd'])) {
 
 $reviews = get_reviews_by_place($pdo, $place_id);
 $rating_info = get_avg_rating($pdo, $place_id);
+
+// Rating breakdown per star
+$rating_breakdown = [];
+for ($i = 1; $i <= 5; $i++) {
+    $rating_breakdown[$i] = 0;
+}
+if ($rating_info['count'] > 0) {
+    $stmt = $pdo->prepare("SELECT rating, COUNT(*) as cnt FROM reviews WHERE place_id = ? GROUP BY rating");
+    $stmt->execute([$place_id]);
+    foreach ($stmt->fetchAll() as $row) {
+        $rating_breakdown[(int)$row['rating']] = (int)$row['cnt'];
+    }
+}
+
+// Facilities (assume JSON array stored in place, fallback to empty)
+$facilities_raw = $place['facilities'] ?? '';
+$facilities_list = !empty($facilities_raw) ? json_decode($facilities_raw, true) : [];
+if (!is_array($facilities_list)) $facilities_list = [];
+
+// Opening hours
+$open_time  = $place['open_time']  ?? '';
+$close_time = $place['close_time'] ?? '';
 $weather = get_weather_for_place($pdo, $place_id, $place['location']);
 $crowd = get_latest_crowd($pdo, $place_id);
 $maps_url = google_maps_url($place['latitude'], $place['longitude'], $place['name']);
 
 require_once 'includes/header.php';
 ?>
+
+<style>
+/* ── Rating Breakdown ─────────────────────────── */
+.rating-breakdown {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+.rating-summary {
+    text-align: center;
+    flex-shrink: 0;
+}
+.rating-big {
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1;
+    color: #1e2d1f;
+}
+.stars-display {
+    color: #f5a623;
+    font-size: 1.1rem;
+    margin: 0.25rem 0;
+}
+.rating-count {
+    font-size: 0.8rem;
+    color: #7d8165;
+}
+.rating-bars {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+.rating-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+}
+.bar-label { color: #5a6b57; width: 0.75rem; text-align: right; }
+.bar-star  { color: #f5a623; font-size: 0.75rem; }
+.bar-track {
+    flex: 1;
+    height: 6px;
+    background: #e8ede6;
+    border-radius: 99px;
+    overflow: hidden;
+}
+.bar-fill {
+    height: 100%;
+    background: #f5a623;
+    border-radius: 99px;
+    transition: width 0.6s ease;
+}
+.bar-count { color: #7d8165; width: 1.25rem; text-align: right; }
+
+/* ── Facilities ───────────────────────────────── */
+.facilities-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.facility-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.35rem 0.85rem;
+    background: #f4f7f3;
+    border: 1px solid #dde8db;
+    border-radius: 99px;
+    font-size: 0.83rem;
+    color: #3a4f3b;
+    font-weight: 500;
+}
+
+/* ── Cost / Hours Cards ───────────────────────── */
+.cost-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+}
+.cost-card {
+    background: #f9fbf8;
+    border: 1px solid #e4ede1;
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+}
+.cost-label {
+    font-size: 0.78rem;
+    color: #7d8165;
+    margin-bottom: 0.3rem;
+}
+.cost-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e2d1f;
+}
+</style>
 
 <section class="place-header">
     <div class="container">
@@ -80,24 +201,93 @@ require_once 'includes/header.php';
 
     <div class="place-info-grid">
         <div>
+            <!-- Rating Breakdown -->
+            <div class="info-panel">
+                <div class="rating-breakdown">
+                    <div class="rating-summary">
+                        <div class="rating-big"><?php echo $rating_info['count'] > 0 ? number_format($rating_info['avg_rating'], 1) : '-'; ?></div>
+                        <div class="stars-display">
+                            <?php
+                            $avg = $rating_info['count'] > 0 ? round($rating_info['avg_rating']) : 0;
+                            echo str_repeat('★', $avg) . str_repeat('☆', 5 - $avg);
+                            ?>
+                        </div>
+                        <div class="rating-count"><?php echo $rating_info['count']; ?> review</div>
+                    </div>
+                    <div class="rating-bars">
+                        <?php for ($star = 5; $star >= 1; $star--): ?>
+                            <?php
+                            $count = $rating_breakdown[$star];
+                            $pct = $rating_info['count'] > 0 ? round(($count / $rating_info['count']) * 100) : 0;
+                            ?>
+                            <div class="rating-bar-row">
+                                <span class="bar-label"><?php echo $star; ?></span>
+                                <span class="bar-star">★</span>
+                                <div class="bar-track">
+                                    <div class="bar-fill" style="width:<?php echo $pct; ?>%"></div>
+                                </div>
+                                <span class="bar-count"><?php echo $count; ?></span>
+                            </div>
+                        <?php endfor; ?>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tentang Destinasi -->
             <div class="info-panel">
                 <h3>Tentang Destinasi</h3>
                 <p style="line-height:1.7; color:#5a6b57;"><?php echo esc($place['description']); ?></p>
+
+                <!-- Fasilitas -->
+                <?php if (!empty($facilities_list)): ?>
+                <div style="margin-top:1.25rem;">
+                    <h4 style="font-size:1rem; font-weight:700; margin-bottom:0.75rem; color:#2c3e2d;">Fasilitas</h4>
+                    <div class="facilities-list">
+                        <?php
+                        $facility_icons = [
+                            'Toilet'    => '🚻',
+                            'Mushola'   => '🕌',
+                            'Warung'    => '🍢',
+                            'Parkir'    => '🅿️',
+                            'Home Stay' => '🏠',
+                            'ATM'       => '🏧',
+                            'WiFi'      => '📶',
+                            'Restoran'  => '🍽️',
+                        ];
+                        foreach ($facilities_list as $fac):
+                            $icon = $facility_icons[$fac] ?? '✓';
+                        ?>
+                            <span class="facility-tag">
+                                <?php echo $icon; ?> <?php echo esc($fac); ?>
+                            </span>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
 
+            <!-- Jam Buka & Informasi Biaya -->
             <div class="info-panel">
-                <h3>Informasi Biaya</h3>
-                <div class="info-row">
-                    <span class="info-label">Tiket Masuk</span>
-                    <span class="info-value"><?php echo format_rupiah($place['entrance_fee']); ?></span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Parkir</span>
-                    <span class="info-value"><?php echo format_rupiah($place['parking_fee']); ?></span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Estimasi Makan</span>
-                    <span class="info-value"><?php echo format_rupiah($place['meal_cost']); ?></span>
+                <h3>Informasi Kunjungan</h3>
+                <div class="cost-grid">
+                    <?php if (!empty($open_time) && !empty($close_time)): ?>
+                    <div class="cost-card">
+                        <div class="cost-label">Jam Buka</div>
+                        <div class="cost-value"><?php echo esc($open_time); ?> – <?php echo esc($close_time); ?></div>
+                    </div>
+                    <?php endif; ?>
+                    <div class="cost-card">
+                        <div class="cost-label">Tiket Masuk</div>
+                        <div class="cost-value"><?php echo format_rupiah($place['entrance_fee']); ?></div>
+                    </div>
+                    <div class="cost-card">
+                        <div class="cost-label">Parkir</div>
+                        <div class="cost-value"><?php echo format_rupiah($place['parking_fee']); ?></div>
+                    </div>
+                    <div class="cost-card">
+                        <div class="cost-label">Estimasi Makan</div>
+                        <div class="cost-value"><?php echo format_rupiah($place['meal_cost']); ?></div>
+                    </div>
                 </div>
             </div>
 
