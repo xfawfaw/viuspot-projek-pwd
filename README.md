@@ -1,4 +1,4 @@
-# VIUSPOT - Indonesian Tourism Information & Review System
+# VIUSPOT - Indonesian Information & Review System
 
 ## Deskripsi
 Viuspot adalah sistem informasi dan ulasan wisata berbasis web yang dikembangkan menggunakan PHP Native, HTML5, dan CSS3. Sistem ini menyediakan informasi destinasi wisata Indonesia, ulasan pengguna, perencanaan perjalanan, kalkulator budget, sistem badge & level, forum komunitas, integrasi cuaca, dan laporan keramaian.
