@@ -78,9 +78,9 @@ require_once 'includes/header.php';
                         <?php foreach ($all_places as $place): ?>
                             <label class="dest-item">
                                 <input type="checkbox" name="places[]" value="<?php echo $place['id']; ?>" id="bp_<?php echo $place['id']; ?>"
-                                       data-entrance="<?php echo $place['entrance_fee']; ?>"
-                                       data-parking="<?php echo $place['parking_fee']; ?>"
-                                       data-meal="<?php echo $place['meal_cost']; ?>">
+                                        data-entrance="<?php echo $place['entrance_fee']; ?>"
+                                        data-parking="<?php echo $place['parking_fee']; ?>"
+                                        data-meal="<?php echo $place['meal_cost']; ?>">
                                 <span class="checkmark"></span>
                                 <strong><?php echo esc($place['name']); ?></strong>
                                 <div style="color:#7d8165; font-size:0.8rem;">
@@ -96,7 +96,6 @@ require_once 'includes/header.php';
         </div>
 
         <div id="resultContainer">
-            <!-- Result will be displayed here via JS or PHP fallback -->
             <?php if ($budget_result): ?>
                 <div class="budget-summary glass-card" style="background: var(--hero-gradient);">
                     <div style="font-size:0.9rem; opacity:0.9; margin-bottom:0.5rem;">Estimasi Total Biaya</div>
@@ -185,7 +184,6 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', calculateRealTime);
     });
     
-    // Initial run in case of browser autocomplete
     calculateRealTime();
 });
 </script>

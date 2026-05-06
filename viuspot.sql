@@ -201,8 +201,8 @@ INSERT INTO badges (name, description, min_reviews, icon) VALUES
 ('Tourist', 'Pengguna baru yang mulai menjelajah', 1, 'user'),
 ('Backpacker', 'Traveler aktif dengan 5+ ulasan', 5, 'backpack'),
 ('Wanderer', 'Penjelajah dengan 15+ ulasan', 15, 'compass'),
-('Explorer', 'Petualang berpengalaman dengan 30+ ulasan', 30, 'map'),
-('Explorer Legend', 'Legenda wisata Indonesia dengan 50+ ulasan', 50, 'crown');
+('Explorer', 'Petualang berpengalaman dengan 45+ ulasan', 45, 'map'),
+('Explorer Legend', 'Legenda wisata Indonesia dengan 80+ ulasan', 80, 'crown');
 
 -- ============================================================
 -- SEED DATA: ADMIN USER

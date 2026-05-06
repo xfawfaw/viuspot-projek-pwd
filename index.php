@@ -32,12 +32,11 @@ $stmt = $pdo->query("
     ORDER BY c.`name`
 ");
 $categories_with_count = $stmt->fetchAll();
-
-// Simulated weather for the region
-$weather = get_weather_for_place($pdo, 0, 'Indonesia');
 ?>
 
-<section class="hero" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('assets/img/home.jpg'); background-size: cover; background-position: center; min-height: 80vh; margin: 0 auto; display: flex; align-items: center; border-radius: 24px;">
+</div>
+
+<section class="hero" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('assets/img/home.jpg'); background-size: cover; background-position: center; min-height: 80vh; width: 100%; display: flex; align-items: center;">
     <div class="container">
         <h1>Jelajahi Keindahan Indonesia</h1>
         <p>Viuspot adalah sistem informasi dan ulasan wisata terlengkap. Temukan destinasi, rencanakan perjalanan, dan bagikan pengalamanmu.</p>
@@ -164,12 +163,6 @@ $weather = get_weather_for_place($pdo, 0, 'Indonesia');
             <?php endforeach; ?>
         </div>
     </section>
-
-    <aside class="weather-widget-fixed">
-        <div class="widget-title">Cuaca Hari Ini</div>
-        <div class="weather-temp"><?php echo $weather['temperature']; ?>°C</div>
-        <div class="weather-detail"><?php echo esc($weather['condition_text']); ?></div>
-    </aside>
 
     <div class="section-header mt-4">
         <h2>Ulasan Terbaru</h2>
