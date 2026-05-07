@@ -18,7 +18,7 @@ $stmt = $pdo->query("SELECT COUNT(*) as total FROM users WHERE role='user'");
 $user_count = $stmt->fetch()['total'];
 
 // Recent pending places
-$stmt = $pdo->query("SELECT p.*, c.`name` as category_name FROM places p JOIN categories c ON p.category_id = c.id WHERE p.status='pending' ORDER BY p.created_at DESC LIMIT 5");
+$stmt = $pdo->query("SELECT p.*, c.`name` as category_name, u.username as submitter_username, u.full_name as submitter_name FROM places p JOIN categories c ON p.category_id = c.id LEFT JOIN users u ON p.submitted_by = u.id WHERE p.status='pending' ORDER BY p.created_at DESC LIMIT 5");
 $pending_places = $stmt->fetchAll();
 
 require_once '../includes/header.php';
@@ -92,6 +92,7 @@ require_once '../includes/header.php';
                             <th>Nama</th>
                             <th>Kategori</th>
                             <th>Lokasi</th>
+                            <th>Diajukan Oleh</th>
                             <th>Tanggal</th>
                             <th>Aksi</th>
                         </tr>
@@ -102,6 +103,15 @@ require_once '../includes/header.php';
                             <td><strong><?php echo esc($place['name']); ?></strong></td>
                             <td><span class="badge-display badge-tourist" style="font-size:0.75rem;"><?php echo esc($place['category_name']); ?></span></td>
                             <td><?php echo esc($place['location']); ?></td>
+                            <td>
+                                <?php if ($place['submitter_username']): ?>
+                                    <span title="<?php echo esc($place['submitter_name']); ?>">
+                                        👤 <?php echo esc($place['submitter_username']); ?>
+                                    </span>
+                                <?php else: ?>
+                                    <span style="color:#aaa;">— Tamu</span>
+                                <?php endif; ?>
+                            </td>
                             <td style="font-size: 0.85rem;"><?php echo date('d/m/y', strtotime($place['created_at'])); ?></td>
                             <td>
                                 <div class="flex gap-1">
@@ -112,7 +122,7 @@ require_once '../includes/header.php';
                         </tr>
                         <?php endforeach; ?>
                         <?php if (empty($pending_places)): ?>
-                        <tr><td colspan="5" style="text-align:center; color:#7d8165; padding: 3rem;">🎉 Tidak ada usulan pending saat ini.</td></tr>
+                        <tr><td colspan="6" style="text-align:center; color:#7d8165; padding: 3rem;">🎉 Tidak ada usulan pending saat ini.</td></tr>
                         <?php endif; ?>
                     </tbody>
                 </table>

@@ -15,10 +15,24 @@ $total_users = $stmt->fetch()['total'];
 $stmt = $pdo->query("SELECT COUNT(*) as total FROM categories");
 $total_cats = $stmt->fetch()['total'];
 
-// Fetch popular destinations (top 3)
-$stmt = $pdo->prepare("SELECT * FROM places WHERE name IN ('Malioboro', 'Gunung Merbabu', 'Gunung Prau') AND status = 'approved' LIMIT 3");
-$stmt->execute();
+// Fetch popular destinations – dinamis berdasarkan avg rating (min. 1 ulasan)
+$stmt = $pdo->query("
+    SELECT p.*, AVG(r.rating) as avg_rating, COUNT(r.id) as review_count
+    FROM places p
+    LEFT JOIN reviews r ON r.place_id = p.id
+    WHERE p.status = 'approved'
+    GROUP BY p.id
+    HAVING review_count > 0
+    ORDER BY avg_rating DESC, review_count DESC
+    LIMIT 3
+");
 $popular_places = $stmt->fetchAll();
+
+// Jika belum ada review sama sekali, fallback tampilkan 3 tempat terbaru
+if (empty($popular_places)) {
+    $stmt = $pdo->query("SELECT * FROM places WHERE status='approved' ORDER BY id DESC LIMIT 3");
+    $popular_places = $stmt->fetchAll();
+}
 
 // Fetch recent reviews
 $recent_reviews = get_recent_reviews($pdo, 4);
@@ -34,34 +48,206 @@ $stmt = $pdo->query("
 $categories_with_count = $stmt->fetchAll();
 ?>
 
+<!-- AJAX Search endpoint (diproses di file ini sebelum HTML) -->
+<?php
+if (isset($_GET['ajax_search'])) {
+    header('Content-Type: application/json');
+    $q = trim($_GET['q'] ?? '');
+    $results = [];
+    if (strlen($q) >= 2) {
+        $like = '%' . $q . '%';
+        $s = $pdo->prepare("
+            SELECT p.id, p.name, p.location, p.image_url, p.entrance_fee,
+                   c.name as category_name,
+                   AVG(r.rating) as avg_rating, COUNT(r.id) as review_count
+            FROM places p
+            JOIN categories c ON c.id = p.category_id
+            LEFT JOIN reviews r ON r.place_id = p.id
+            WHERE p.status='approved' AND (p.name LIKE ? OR p.location LIKE ? OR p.description LIKE ?)
+            GROUP BY p.id
+            ORDER BY avg_rating DESC
+            LIMIT 8
+        ");
+        $s->execute([$like, $like, $like]);
+        $results = $s->fetchAll(PDO::FETCH_ASSOC);
+    }
+    echo json_encode($results);
+    exit;
+}
+?>
+
 </div>
 
-<section class="hero" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('assets/img/home.jpg'); background-size: cover; background-position: center; min-height: 80vh; width: 100%; display: flex; align-items: center;">
+<section class="hero" style="background-image: url('assets/img/home.jpg');">
     <div class="container">
         <h1>Jelajahi Keindahan Indonesia</h1>
-        <p>Viuspot adalah sistem informasi dan ulasan wisata terlengkap. Temukan destinasi, rencanakan perjalanan, dan bagikan pengalamanmu.</p>
-        <a href="planner.php" class="btn btn-accent btn-lg">Rencanakan Perjalanan</a>
+        <p>Viuspot adalah sistem informasi dan ulasan wisata terlengkap.<br>Temukan destinasi, rencanakan perjalanan, dan bagikan pengalamanmu.</p>
+
+        <!-- ====== SEARCH BAR ====== -->
+        <div class="hero-search" style="margin: 1.5rem 0 1.25rem; position:relative; max-width:580px; margin-left:auto; margin-right:auto;">
+            <div style="display:flex; background:#fff; border-radius:50px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.2);">
+                <i class="ti ti-search" style="padding: 0 0 0 1.2rem; font-size:1.3rem; color:#7d8165; display:flex; align-items:center;"></i>
+                <input type="text" id="searchInput" placeholder="Cari destinasi, kota, atau kategori..." 
+                       autocomplete="off"
+                       style="flex:1; border:none; outline:none; padding:0.9rem 1rem; font-size:1rem; background:transparent; color:#333;">
+                <button onclick="doSearch()" style="background:#2ab7a9; color:#fff; border:none; padding:0 1.5rem; font-weight:700; font-size:0.95rem; cursor:pointer; border-radius:0 50px 50px 0;">Cari</button>
+            </div>
+            <!-- Dropdown hasil pencarian -->
+            <div id="searchDropdown" style="display:none; position:absolute; top:calc(100% + 6px); left:0; right:0; background:#fff; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.18); overflow:hidden; z-index:999; max-height:380px; overflow-y:auto;"></div>
+        </div>
+        <!-- ====== END SEARCH BAR ====== -->
+
+        <a href="planner.php" class="btn btn-accent btn-lg" style="position:relative;z-index:5;">✦ Rencanakan Perjalanan</a>
 
         <div class="hero-stats">
             <div class="hero-stat">
-                <strong><?php echo $total_places; ?></strong>
+                <strong class="counter" data-target="<?php echo $total_places; ?>">0</strong>
                 <span>Destinasi</span>
             </div>
             <div class="hero-stat">
-                <strong><?php echo $total_reviews; ?></strong>
+                <strong class="counter" data-target="<?php echo $total_reviews; ?>">0</strong>
                 <span>Ulasan</span>
             </div>
             <div class="hero-stat">
-                <strong><?php echo $total_users; ?></strong>
+                <strong class="counter" data-target="<?php echo $total_users; ?>">0</strong>
                 <span>Traveler</span>
             </div>
             <div class="hero-stat">
-                <strong><?php echo $total_cats; ?></strong>
+                <strong class="counter" data-target="<?php echo $total_cats; ?>">0</strong>
                 <span>Kategori</span>
             </div>
         </div>
     </div>
 </section>
+
+<style>
+#searchDropdown .search-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #f0ece0;
+    text-decoration: none;
+    color: #333;
+    transition: background 0.15s;
+}
+#searchDropdown .search-item:last-child { border-bottom: none; }
+#searchDropdown .search-item:hover { background: #f0faf9; }
+#searchDropdown .search-item img {
+    width: 48px; height: 48px; object-fit: cover; border-radius: 8px; flex-shrink: 0;
+}
+#searchDropdown .search-item-info { flex: 1; min-width: 0; }
+#searchDropdown .search-item-name { font-weight: 700; font-size: 0.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#searchDropdown .search-item-meta { font-size: 0.78rem; color: #7d8165; }
+#searchDropdown .search-empty { padding: 1.25rem; text-align:center; color:#aaa; font-size:0.9rem; }
+#searchDropdown .search-loading { padding: 1rem; text-align:center; color:#2ab7a9; }
+</style>
+
+<script>
+let searchTimer = null;
+
+document.getElementById('searchInput').addEventListener('input', function () {
+    clearTimeout(searchTimer);
+    const q = this.value.trim();
+    if (q.length < 2) {
+        closeDropdown();
+        return;
+    }
+    showLoading();
+    searchTimer = setTimeout(() => fetchResults(q), 300);
+});
+
+document.getElementById('searchInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doSearch();
+    if (e.key === 'Escape') closeDropdown();
+});
+
+function doSearch() {
+    const q = document.getElementById('searchInput').value.trim();
+    if (q.length >= 2) {
+        window.location.href = 'index.php?search=' + encodeURIComponent(q);
+    }
+}
+
+function showLoading() {
+    const dd = document.getElementById('searchDropdown');
+    dd.style.display = 'block';
+    dd.innerHTML = '<div class="search-loading"><i class="ti ti-loader"></i> Mencari...</div>';
+}
+
+function closeDropdown() {
+    document.getElementById('searchDropdown').style.display = 'none';
+}
+
+function fetchResults(q) {
+    fetch('index.php?ajax_search=1&q=' + encodeURIComponent(q))
+        .then(r => r.json())
+        .then(data => {
+            const dd = document.getElementById('searchDropdown');
+            if (data.length === 0) {
+                dd.innerHTML = '<div class="search-empty">Tidak ada destinasi yang cocok untuk "<strong>' + escHtml(q) + '</strong>"</div>';
+            } else {
+                let html = '';
+                data.forEach(p => {
+                    const stars = p.review_count > 0 ? '⭐ ' + parseFloat(p.avg_rating).toFixed(1) + ' (' + p.review_count + ')' : 'Belum ada rating';
+                    html += `<a href="place.php?id=${p.id}" class="search-item">
+                        <img src="assets/img/${escHtml(p.image_url)}" onerror="this.src='assets/img/home.jpg'" alt="${escHtml(p.name)}">
+                        <div class="search-item-info">
+                            <div class="search-item-name">${escHtml(p.name)}</div>
+                            <div class="search-item-meta">${escHtml(p.category_name)} &middot; ${escHtml(p.location)}</div>
+                            <div class="search-item-meta">${stars}</div>
+                        </div>
+                    </a>`;
+                });
+                dd.innerHTML = html;
+            }
+            dd.style.display = 'block';
+        })
+        .catch(() => closeDropdown());
+}
+
+function escHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+}
+
+// Tutup dropdown saat klik di luar
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.hero-search')) closeDropdown();
+});
+</script>
+
+<script>
+// Animasi counter stats dari database
+document.addEventListener('DOMContentLoaded', function () {
+    const counters = document.querySelectorAll('.counter');
+    const speed = 200;
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const el = entry.target;
+                const target = +el.getAttribute('data-target');
+                if (target === 0) { el.textContent = 0; observer.unobserve(el); return; }
+                const increment = target / speed;
+                let current = 0;
+                const update = () => {
+                    current += increment;
+                    if (current < target) {
+                        el.textContent = Math.ceil(current);
+                        requestAnimationFrame(update);
+                    } else {
+                        el.textContent = target;
+                    }
+                };
+                update();
+                observer.unobserve(el);
+            }
+        });
+    }, { threshold: 0.3 });
+    counters.forEach(c => observer.observe(c));
+});
+</script>
 
 <div class="container">
     <div class="section-header">
@@ -70,20 +256,93 @@ $categories_with_count = $stmt->fetchAll();
     </div>
 
     <div class="grid grid-4 mb-4">
-        <?php foreach ($categories_with_count as $cat): ?>
+        <?php
+        $category_icons = [
+            'culinary'      => ['icon' => 'ti-tools-kitchen-2', 'class' => 'ic-culinary'],
+            'culture'       => ['icon' => 'ti-building-arch',   'class' => 'ic-culture'],
+            'education'     => ['icon' => 'ti-school',          'class' => 'ic-education'],
+            'entertainment' => ['icon' => 'ti-confetti',        'class' => 'ic-entertainment'],
+            'history'       => ['icon' => 'ti-building-castle', 'class' => 'ic-history'],
+            'nature'        => ['icon' => 'ti-trees',           'class' => 'ic-nature'],
+            'religious'     => ['icon' => 'ti-building-mosque', 'class' => 'ic-religious'],
+            'shopping'      => ['icon' => 'ti-shopping-bag',    'class' => 'ic-shopping'],
+        ];
+        foreach ($categories_with_count as $cat):
+            $key = strtolower($cat['name']);
+            $icon_data = $category_icons[$key] ?? ['icon' => 'ti-map-pin', 'class' => 'ic-nature'];
+        ?>
             <a href="index.php?category=<?php echo $cat['id']; ?>" class="category-card">
-                <div class="category-icon"><?php echo substr($cat['name'], 0, 2); ?></div>
-                <h3><?php echo esc($cat['name']); ?></h3>
-                <p><?php echo $cat['place_count']; ?> destinasi</p>
+                <div class="category-icon <?php echo $icon_data['class']; ?>">
+                    <i class="ti <?php echo $icon_data['icon']; ?>" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <h3><?php echo esc($cat['name']); ?></h3>
+                    <p><?php echo $cat['place_count']; ?> destinasi</p>
+                </div>
+                <span class="cat-arrow">→</span>
             </a>
         <?php endforeach; ?>
     </div>
 
     <?php
-    // If category selected, show places
-    if (isset($_GET['category']) && is_numeric($_GET['category'])):
-        $cat_id = (int)$_GET['category'];
-        $places = get_places_by_category($pdo, $cat_id, 'approved');
+    // Hasil pencarian (full-page)
+    if (isset($_GET['search']) && strlen(trim($_GET['search'])) >= 2):
+        $q    = trim($_GET['search']);
+        $like = '%' . $q . '%';
+        $s    = $pdo->prepare("
+            SELECT p.*, c.name as category_name,
+                   AVG(r.rating) as avg_rating, COUNT(r.id) as review_count
+            FROM places p
+            JOIN categories c ON c.id = p.category_id
+            LEFT JOIN reviews r ON r.place_id = p.id
+            WHERE p.status='approved' AND (p.name LIKE ? OR p.location LIKE ? OR p.description LIKE ?)
+            GROUP BY p.id
+            ORDER BY avg_rating DESC
+        ");
+        $s->execute([$like, $like, $like]);
+        $search_results = $s->fetchAll();
+    ?>
+    <div class="section-header">
+        <h2>Hasil Pencarian: "<?php echo esc($q); ?>"</h2>
+        <p><?php echo count($search_results); ?> destinasi ditemukan</p>
+    </div>
+
+    <?php if (!empty($search_results)): ?>
+    <div class="grid grid-3 mb-4">
+        <?php foreach ($search_results as $place):
+            $rating = get_avg_rating($pdo, $place['id']);
+            $crowd  = get_latest_crowd($pdo, $place['id']);
+        ?>
+            <article class="card">
+                <div class="card-image" style="background-image: url('assets/img/<?php echo esc($place['image_url']); ?>'); background-size: cover; background-position: center;">
+                    <?php if ($crowd): ?>
+                        <span class="crowd-badge crowd-<?php echo $crowd['crowd_level']; ?>"><?php echo get_crowd_label($crowd['crowd_level']); ?></span>
+                    <?php endif; ?>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title"><?php echo esc($place['name']); ?></h3>
+                    <div class="card-meta"><?php echo esc($place['location']); ?> &middot; <?php echo esc($place['category_name']); ?></div>
+                    <p class="card-text"><?php echo esc(truncate($place['description'], 100)); ?></p>
+                </div>
+                <div class="card-footer">
+                    <span class="card-price"><?php echo format_rupiah($place['entrance_fee']); ?></span>
+                    <span class="stars"><?php echo $rating['count'] > 0 ? number_format($rating['avg_rating'], 1) . ' ★' : 'Belum ada rating'; ?></span>
+                </div>
+                <div style="padding: 0 1.25rem 1rem;">
+                    <a href="place.php?id=<?php echo $place['id']; ?>" class="btn btn-primary btn-sm btn-block">Lihat Detail</a>
+                </div>
+            </article>
+        <?php endforeach; ?>
+    </div>
+    <?php else: ?>
+        <div class="alert alert-info">Tidak ada destinasi yang cocok dengan pencarian "<strong><?php echo esc($q); ?></strong>". Coba kata kunci lain.</div>
+    <?php endif; ?>
+
+    <?php // Akhir blok search
+    elseif (isset($_GET['category']) && is_numeric($_GET['category'])): ?>
+    <?php
+        $cat_id  = (int)$_GET['category'];
+        $places  = get_places_by_category($pdo, $cat_id, 'approved');
         $cat_info = null;
         foreach ($categories_with_count as $c) {
             if ($c['id'] == $cat_id) { $cat_info = $c; break; }
@@ -111,7 +370,21 @@ $categories_with_count = $stmt->fetchAll();
                                 <span class="crowd-badge crowd-<?php echo $crowd['crowd_level']; ?>" style="position:static; margin-left:5px;"><?php echo get_crowd_label($crowd['crowd_level']); ?></span>
                             <?php endif; ?>
                         </div>
-                        <p class="card-text"><?php echo esc(truncate($place['description'], 120)); ?></p>
+                        <p class="card-text"><?php echo esc(truncate($place['description'], 100)); ?></p>
+                        <?php
+                        $fac_icons = ['toilet'=>'🚻','parkir'=>'🅿️','wifi'=>'📶','mushola'=>'🕌','restoran'=>'🍽️','atm'=>'💳','aksesibilitas'=>'♿','area_foto'=>'📸','penginapan'=>'🏨','souvenir'=>'🛍️','pemandu'=>'🧭','camping'=>'⛺','kolam_renang'=>'🏊','pertolongan'=>'🏥'];
+                        $facs = !empty($place['facilities']) ? json_decode($place['facilities'], true) : [];
+                        if (!empty($facs)):
+                        ?>
+                        <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:0.5rem;">
+                            <?php foreach (array_slice($facs, 0, 5) as $f): ?>
+                                <span title="<?php echo ucfirst($f); ?>" style="font-size:1.1rem; background:#f0faf9; border:1px solid #d0f0ec; border-radius:4px; padding:2px 5px;"><?php echo $fac_icons[$f] ?? '✓'; ?></span>
+                            <?php endforeach; ?>
+                            <?php if (count($facs) > 5): ?>
+                                <span style="font-size:0.75rem; color:#2ab7a9; padding:3px 5px; background:#f0faf9; border-radius:4px; border:1px solid #d0f0ec;">+<?php echo count($facs)-5; ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <?php endif; ?>
                     </div>
                     <div class="card-footer">
                         <span class="card-price"><?php echo format_rupiah($place['entrance_fee']); ?></span>
@@ -132,12 +405,12 @@ $categories_with_count = $stmt->fetchAll();
     <section class="mt-4">
         <div class="section-header">
             <h2>Destinasi Populer</h2>
-            <p>Pilihan terbaik untuk petualanganmu selanjutnya</p>
+            <p>Pilihan terbaik berdasarkan rating dan ulasan pengunjung</p>
         </div>
         <div class="grid grid-3 mb-4">
             <?php foreach ($popular_places as $place): 
                 $rating = get_avg_rating($pdo, $place['id']);
-                $crowd = get_latest_crowd($pdo, $place['id']);
+                $crowd  = get_latest_crowd($pdo, $place['id']);
             ?>
                 <article class="card">
                     <div class="card-image" style="background-image: url('assets/img/<?php echo esc($place['image_url']); ?>'); background-size: cover; background-position: center;">
@@ -150,7 +423,21 @@ $categories_with_count = $stmt->fetchAll();
                     <div class="card-body">
                         <h3 class="card-title"><?php echo esc($place['name']); ?></h3>
                         <div class="card-meta"><?php echo esc($place['location']); ?></div>
-                        <p class="card-text"><?php echo esc(truncate($place['description'], 120)); ?></p>
+                        <p class="card-text"><?php echo esc(truncate($place['description'], 100)); ?></p>
+                        <?php
+                        $fac_icons = ['toilet'=>'🚻','parkir'=>'🅿️','wifi'=>'📶','mushola'=>'🕌','restoran'=>'🍽️','atm'=>'💳','aksesibilitas'=>'♿','area_foto'=>'📸','penginapan'=>'🏨','souvenir'=>'🛍️','pemandu'=>'🧭','camping'=>'⛺','kolam_renang'=>'🏊','pertolongan'=>'🏥'];
+                        $facs = !empty($place['facilities']) ? json_decode($place['facilities'], true) : [];
+                        if (!empty($facs)):
+                        ?>
+                        <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:0.5rem;">
+                            <?php foreach (array_slice($facs, 0, 5) as $f): ?>
+                                <span title="<?php echo ucfirst($f); ?>" style="font-size:1.1rem; background:#f0faf9; border:1px solid #d0f0ec; border-radius:4px; padding:2px 5px;"><?php echo $fac_icons[$f] ?? '✓'; ?></span>
+                            <?php endforeach; ?>
+                            <?php if (count($facs) > 5): ?>
+                                <span style="font-size:0.75rem; color:#2ab7a9; padding:3px 5px; background:#f0faf9; border-radius:4px; border:1px solid #d0f0ec;">+<?php echo count($facs)-5; ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <?php endif; ?>
                     </div>
                     <div class="card-footer">
                         <span class="card-price"><?php echo format_rupiah($place['entrance_fee']); ?></span>

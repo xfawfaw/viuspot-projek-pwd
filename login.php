@@ -7,6 +7,13 @@ if (is_logged_in()) {
     exit;
 }
 
+// Simpan URL tujuan setelah login
+$redirect = $_GET['redirect'] ?? $_POST['redirect'] ?? 'index.php';
+// Keamanan: hanya izinkan redirect ke file .php lokal (tidak ke URL eksternal)
+if (!preg_match('/^[a-zA-Z0-9_\-]+\.php(\?.*)?$/', $redirect)) {
+    $redirect = 'index.php';
+}
+
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
@@ -24,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role'];
             $_SESSION['full_name'] = $user['full_name'];
-            header("Location: index.php");
+            header("Location: " . $redirect);
             exit;
         } else {
             $error = 'Username atau password salah.';
@@ -52,7 +59,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="alert alert-error"><?php echo $error; ?></div>
             <?php endif; ?>
 
+            <?php
+            // Tampilkan flash message (misal: "harus login dulu")
+            if (isset($_SESSION['flash'])) {
+                $flash = $_SESSION['flash'];
+                unset($_SESSION['flash']);
+                echo '<div class="alert alert-' . $flash['type'] . '">' . $flash['message'] . '</div>';
+            }
+            ?>
+
             <form method="POST" action="" style="background:#fff; padding:2rem; border-radius:8px; border:1px solid #e8e5d8;">
+                <input type="hidden" name="redirect" value="<?php echo esc($redirect); ?>">
                 <div class="form-group">
                     <label class="form-label">Username atau Email</label>
                     <input type="text" name="username" class="form-control" required autofocus>
