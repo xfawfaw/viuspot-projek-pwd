@@ -29,10 +29,10 @@ require_once '../includes/header.php';
         <aside class="admin-sidebar">
             <h3 class="mb-3">Menu Admin</h3>
             <nav class="admin-sidebar-nav">
-                <a href="dashboard.php" class="active">🏠 Dashboard</a>
-                <a href="places.php">📍 Kelola Destinasi</a>
-                <a href="reviews.php">💬 Kelola Ulasan</a>
-                <a href="../logout.php">🚪 Logout</a>
+                <a href="dashboard.php" class="active">Dashboard</a>
+                <a href="places.php">Kelola Destinasi</a>
+                <a href="reviews.php">Kelola Ulasan</a>
+                <a href="../logout.php">Logout</a>
             </nav>
         </aside>
 
