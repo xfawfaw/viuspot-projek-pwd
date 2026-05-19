@@ -184,13 +184,9 @@ if (isset($_GET['ajax_search'])) {
     <div class="grid grid-3 mb-4">
         <?php foreach ($search_results as $place):
             $rating = get_avg_rating($pdo, $place['id']);
-            $crowd  = get_latest_crowd($pdo, $place['id']);
         ?>
             <article class="card">
                 <div class="card-image" style="background-image: url('assets/img/<?php echo esc($place['image_url']); ?>'); background-size: cover; background-position: center;">
-                    <?php if ($crowd): ?>
-                        <span class="crowd-badge crowd-<?php echo $crowd['crowd_level']; ?>"><?php echo get_crowd_label($crowd['crowd_level']); ?></span>
-                    <?php endif; ?>
                 </div>
                 <div class="card-body">
                     <h3 class="card-title"><?php echo esc($place['name']); ?></h3>
@@ -236,28 +232,8 @@ if (isset($_GET['ajax_search'])) {
                         <h3 class="card-title"><?php echo esc($place['name']); ?></h3>
                         <div class="card-meta">
                             <?php echo esc($place['location']); ?>
-                            <?php 
-                                $crowd = get_latest_crowd($pdo, $place['id']);
-                                if ($crowd): 
-                            ?>
-                                <span class="crowd-badge crowd-<?php echo $crowd['crowd_level']; ?>" style="position:static; margin-left:5px;"><?php echo get_crowd_label($crowd['crowd_level']); ?></span>
-                            <?php endif; ?>
                         </div>
                         <p class="card-text"><?php echo esc(truncate($place['description'], 100)); ?></p>
-                        <?php
-                        $fac_icons = ['toilet'=>'🚻','parkir'=>'🅿️','wifi'=>'📶','mushola'=>'🕌','restoran'=>'🍽️','atm'=>'💳','aksesibilitas'=>'♿','area_foto'=>'📸','penginapan'=>'🏨','souvenir'=>'🛍️','pemandu'=>'🧭','camping'=>'⛺','kolam_renang'=>'🏊','pertolongan'=>'🏥'];
-                        $facs = !empty($place['facilities']) ? json_decode($place['facilities'], true) : [];
-                        if (!empty($facs)):
-                        ?>
-                        <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:0.5rem;">
-                            <?php foreach (array_slice($facs, 0, 5) as $f): ?>
-                                <span title="<?php echo ucfirst($f); ?>" style="font-size:1.1rem; background:#f0faf9; border:1px solid #d0f0ec; border-radius:4px; padding:2px 5px;"><?php echo $fac_icons[$f] ?? '✓'; ?></span>
-                            <?php endforeach; ?>
-                            <?php if (count($facs) > 5): ?>
-                                <span style="font-size:0.75rem; color:#2ab7a9; padding:3px 5px; background:#f0faf9; border-radius:4px; border:1px solid #d0f0ec;">+<?php echo count($facs)-5; ?></span>
-                            <?php endif; ?>
-                        </div>
-                        <?php endif; ?>
                     </div>
                     <div class="card-footer">
                         <span class="card-price"><?php echo format_rupiah($place['entrance_fee']); ?></span>
@@ -283,34 +259,14 @@ if (isset($_GET['ajax_search'])) {
         <div class="grid grid-3 mb-4">
             <?php foreach ($popular_places as $place): 
                 $rating = get_avg_rating($pdo, $place['id']);
-                $crowd  = get_latest_crowd($pdo, $place['id']);
             ?>
                 <article class="card">
                     <div class="card-image" style="background-image: url('assets/img/<?php echo esc($place['image_url']); ?>'); background-size: cover; background-position: center;">
-                        <?php if ($crowd): ?>
-                            <span class="crowd-badge crowd-<?php echo $crowd['crowd_level']; ?>">
-                                <?php echo get_crowd_label($crowd['crowd_level']); ?>
-                            </span>
-                        <?php endif; ?>
                     </div>
                     <div class="card-body">
                         <h3 class="card-title"><?php echo esc($place['name']); ?></h3>
                         <div class="card-meta"><?php echo esc($place['location']); ?></div>
                         <p class="card-text"><?php echo esc(truncate($place['description'], 100)); ?></p>
-                        <?php
-                        $fac_icons = ['toilet'=>'🚻','parkir'=>'🅿️','wifi'=>'📶','mushola'=>'🕌','restoran'=>'🍽️','atm'=>'💳','aksesibilitas'=>'♿','area_foto'=>'📸','penginapan'=>'🏨','souvenir'=>'🛍️','pemandu'=>'🧭','camping'=>'⛺','kolam_renang'=>'🏊','pertolongan'=>'🏥'];
-                        $facs = !empty($place['facilities']) ? json_decode($place['facilities'], true) : [];
-                        if (!empty($facs)):
-                        ?>
-                        <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:0.5rem;">
-                            <?php foreach (array_slice($facs, 0, 5) as $f): ?>
-                                <span title="<?php echo ucfirst($f); ?>" style="font-size:1.1rem; background:#f0faf9; border:1px solid #d0f0ec; border-radius:4px; padding:2px 5px;"><?php echo $fac_icons[$f] ?? '✓'; ?></span>
-                            <?php endforeach; ?>
-                            <?php if (count($facs) > 5): ?>
-                                <span style="font-size:0.75rem; color:#2ab7a9; padding:3px 5px; background:#f0faf9; border-radius:4px; border:1px solid #d0f0ec;">+<?php echo count($facs)-5; ?></span>
-                            <?php endif; ?>
-                        </div>
-                        <?php endif; ?>
                     </div>
                     <div class="card-footer">
                         <span class="card-price"><?php echo format_rupiah($place['entrance_fee']); ?></span>
