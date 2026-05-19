@@ -48,20 +48,20 @@ if ($status_filter !== 'all') {
 }
 
 $all_facilities = [
-    'toilet'        => ['label' => 'Toilet',           'icon' => '🚻'],
-    'parkir'        => ['label' => 'Area Parkir',       'icon' => '🅿️'],
-    'wifi'          => ['label' => 'WiFi',              'icon' => '📶'],
-    'mushola'       => ['label' => 'Mushola',           'icon' => '🕌'],
-    'restoran'      => ['label' => 'Restoran/Warung',   'icon' => '🍽️'],
-    'atm'           => ['label' => 'ATM',               'icon' => '💳'],
-    'aksesibilitas' => ['label' => 'Ramah Difabel',     'icon' => '♿'],
-    'area_foto'     => ['label' => 'Spot Foto',         'icon' => '📸'],
-    'penginapan'    => ['label' => 'Penginapan',        'icon' => '🏨'],
-    'souvenir'      => ['label' => 'Toko Souvenir',     'icon' => '🛍️'],
-    'pemandu'       => ['label' => 'Pemandu Wisata',    'icon' => '🧭'],
-    'camping'       => ['label' => 'Area Camping',      'icon' => '⛺'],
-    'kolam_renang'  => ['label' => 'Kolam Renang',      'icon' => '🏊'],
-    'pertolongan'   => ['label' => 'P3K / Klinik',      'icon' => '🏥'],
+    'toilet'        => ['label' => 'Toilet',           'icon' => 'fa-solid fa-restroom'],
+    'parkir'        => ['label' => 'Area Parkir',       'icon' => 'fa-solid fa-square-parking'],
+    'wifi'          => ['label' => 'WiFi',              'icon' => 'fa-solid fa-wifi'],
+    'mushola'       => ['label' => 'Mushola',           'icon' => 'fa-solid fa-mosque'],
+    'restoran'      => ['label' => 'Restoran/Warung',   'icon' => 'fa-solid fa-utensils'],
+    'atm'           => ['label' => 'ATM',               'icon' => 'fa-solid fa-credit-card'],
+    'aksesibilitas' => ['label' => 'Ramah Difabel',     'icon' => 'fa-solid fa-wheelchair'],
+    'area_foto'     => ['label' => 'Spot Foto',         'icon' => 'fa-solid fa-camera'],
+    'penginapan'    => ['label' => 'Penginapan',        'icon' => 'fa-solid fa-hotel'],
+    'souvenir'      => ['label' => 'Toko Souvenir',     'icon' => 'fa-solid fa-bag-shopping'],
+    'pemandu'       => ['label' => 'Pemandu Wisata',    'icon' => 'fa-solid fa-compass'],
+    'camping'       => ['label' => 'Area Camping',      'icon' => 'fa-solid fa-tent'],
+    'kolam_renang'  => ['label' => 'Kolam Renang',      'icon' => 'fa-solid fa-person-swimming'],
+    'pertolongan'   => ['label' => 'P3K / Klinik',      'icon' => 'fa-solid fa-kit-medical'],
 ];
 
 require_once '../includes/header.php';
