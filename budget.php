@@ -18,8 +18,8 @@ sort($locations);
 $budget_result = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['calculate'])) {
     $selected = $_POST['places'] ?? [];
-    $people = (int)($_POST['people'] ?? 1);
-    $days   = (int)($_POST['days'] ?? 1);
+    $people = 1; // Default 1 orang
+    $days   = 1; // Default 1 hari
     $transport     = (float)($_POST['transport'] ?? 0);
     $accommodation = (float)($_POST['accommodation'] ?? 0);
 
@@ -27,9 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['calculate'])) {
     foreach ($selected as $place_id) {
         foreach ($all_places as $place) {
             if ($place['id'] == $place_id) {
-                $breakdown['entrance'] += ($place['entrance_fee'] * $people);
-                $breakdown['parking']  += ($place['parking_fee'] * $days);
-                $breakdown['meals']    += ($place['meal_cost'] * $people * $days);
+                $breakdown['entrance'] += $place['entrance_fee'];
+                $breakdown['parking']  += $place['parking_fee'];
+                $breakdown['meals']    += $place['meal_cost'];
                 $breakdown['details'][] = $place;
                 break;
             }
@@ -51,23 +51,13 @@ require_once 'includes/header.php';
     <div class="grid grid-2">
         <div>
             <form id="budgetForm" method="POST" action="" class="planner-card">
-                <div class="grid grid-2">
-                    <div class="form-group">
-                        <label class="form-label">Jumlah Orang</label>
-                        <input type="number" name="people" class="form-control" value="2" min="1" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Durasi (Hari)</label>
-                        <input type="number" name="days" class="form-control" value="2" min="1" required>
-                    </div>
-                </div>
                 <div class="form-group">
                     <label class="form-label">Transportasi (Total Rp)</label>
-                    <input type="number" name="transport" class="form-control" value="500000" min="0">
+                    <input type="number" name="transport" class="form-control" value="0" min="0">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Akomodasi (Total Rp)</label>
-                    <input type="number" name="accommodation" class="form-control" value="400000" min="0">
+                    <input type="number" name="accommodation" class="form-control" value="0" min="0">
                 </div>
 
                 <!-- Filter -->
@@ -174,15 +164,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function calculateRealTime() {
-        const people = parseInt(form.querySelector('[name="people"]').value) || 0;
-        const days   = parseInt(form.querySelector('[name="days"]').value) || 0;
+        const people = 1;
+        const days   = 1;
         const transport     = parseFloat(form.querySelector('[name="transport"]').value) || 0;
         const accommodation = parseFloat(form.querySelector('[name="accommodation"]').value) || 0;
         let entrance=0, parking=0, meals=0;
         form.querySelectorAll('[name="places[]"]:checked').forEach(cb => {
-            entrance += (parseFloat(cb.dataset.entrance)||0) * people;
-            parking  += (parseFloat(cb.dataset.parking)||0) * days;
-            meals    += (parseFloat(cb.dataset.meal)||0) * people * days;
+            entrance += (parseFloat(cb.dataset.entrance)||0);
+            parking  += (parseFloat(cb.dataset.parking)||0);
+            meals    += (parseFloat(cb.dataset.meal)||0);
         });
         const total = entrance + parking + meals + transport + accommodation;
         document.getElementById('totalDisplay').innerText = formatRupiah(total);
