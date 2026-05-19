@@ -127,10 +127,10 @@ require_once 'includes/header.php';
 
         <div id="resultContainer">
             <!-- Live preview card -->
-            <div class="budget-summary glass-card" id="liveCard" style="margin-bottom:1.5rem;">
-                <div style="font-size:0.9rem;opacity:0.9;margin-bottom:0.5rem;">Estimasi Total Biaya (Live)</div>
-                <div class="budget-total price-highlight" id="totalDisplay">Rp 0</div>
-                <div class="budget-breakdown" id="liveBreakdown">
+            <div class="budget-summary glass-card" id="liveCard" style="margin-bottom:1.5rem; color:#333;">
+                <div style="font-size:0.9rem;opacity:0.9;margin-bottom:0.5rem; color:#333;">Estimasi Total Biaya (Live)</div>
+                <div class="budget-total price-highlight" id="totalDisplay" style="color:#2ab7a9; font-weight:bold; font-size:2rem; margin-bottom:1rem;">Rp 0</div>
+                <div class="budget-breakdown" id="liveBreakdown" style="color:#555;">
                     <div class="budget-item"><div class="budget-item-label">Tiket Masuk</div><div class="budget-item-value" id="liveEntrance">Rp 0</div></div>
                     <div class="budget-item"><div class="budget-item-label">Parkir</div><div class="budget-item-value" id="liveParking">Rp 0</div></div>
                     <div class="budget-item"><div class="budget-item-label">Makan</div><div class="budget-item-value" id="liveMeals">Rp 0</div></div>

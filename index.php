@@ -58,8 +58,8 @@ if (isset($_GET['ajax_search'])) {
         $like = '%' . $q . '%';
         $s = $pdo->prepare("
             SELECT p.id, p.name, p.location, p.image_url, p.entrance_fee,
-                   c.name as category_name,
-                   AVG(r.rating) as avg_rating, COUNT(r.id) as review_count
+                    c.name as category_name,
+                    AVG(r.rating) as avg_rating, COUNT(r.id) as review_count
             FROM places p
             JOIN categories c ON c.id = p.category_id
             LEFT JOIN reviews r ON r.place_id = p.id
@@ -84,36 +84,34 @@ if (isset($_GET['ajax_search'])) {
         <p>Viuspot adalah sistem informasi dan ulasan wisata terlengkap.<br>Temukan destinasi, rencanakan perjalanan, dan bagikan pengalamanmu.</p>
 
         <!-- ====== SEARCH BAR ====== -->
-        <div class="hero-search" style="margin: 1.5rem 0 1.25rem; position:relative; max-width:580px; margin-left:auto; margin-right:auto;">
+        <form action="index.php" method="GET" class="hero-search" style="margin: 1.5rem 0 1.25rem; position:relative; max-width:580px; margin-left:auto; margin-right:auto;">
             <div style="display:flex; background:#fff; border-radius:50px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.2);">
                 <i class="ti ti-search" style="padding: 0 0 0 1.2rem; font-size:1.3rem; color:#7d8165; display:flex; align-items:center;"></i>
-                <input type="text" id="searchInput" placeholder="Cari destinasi, kota, atau kategori..." 
-                       autocomplete="off"
+                <input type="text" name="search" placeholder="Cari destinasi, kota, atau kategori..." 
+                       value="<?php echo isset($_GET['search']) ? esc($_GET['search']) : ''; ?>"
                        style="flex:1; border:none; outline:none; padding:0.9rem 1rem; font-size:1rem; background:transparent; color:#333;">
-                <button onclick="doSearch()" style="background:#2ab7a9; color:#fff; border:none; padding:0 1.5rem; font-weight:700; font-size:0.95rem; cursor:pointer; border-radius:0 50px 50px 0;">Cari</button>
+                <button type="submit" style="background:#2ab7a9; color:#fff; border:none; padding:0 1.5rem; font-weight:700; font-size:0.95rem; cursor:pointer; border-radius:0 50px 50px 0;">Cari</button>
             </div>
-            <!-- Dropdown hasil pencarian -->
-            <div id="searchDropdown" style="display:none; position:absolute; top:calc(100% + 6px); left:0; right:0; background:#fff; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.18); overflow:hidden; z-index:999; max-height:380px; overflow-y:auto;"></div>
-        </div>
+        </form>
         <!-- ====== END SEARCH BAR ====== -->
 
         <a href="planner.php" class="btn btn-accent btn-lg" style="position:relative;z-index:5;">✦ Rencanakan Perjalanan</a>
 
         <div class="hero-stats">
             <div class="hero-stat">
-                <strong class="counter" data-target="<?php echo $total_places; ?>">0</strong>
+                <strong><?php echo $total_places; ?></strong>
                 <span>Destinasi</span>
             </div>
             <div class="hero-stat">
-                <strong class="counter" data-target="<?php echo $total_reviews; ?>">0</strong>
+                <strong><?php echo $total_reviews; ?></strong>
                 <span>Ulasan</span>
             </div>
             <div class="hero-stat">
-                <strong class="counter" data-target="<?php echo $total_users; ?>">0</strong>
+                <strong><?php echo $total_users; ?></strong>
                 <span>Traveler</span>
             </div>
             <div class="hero-stat">
-                <strong class="counter" data-target="<?php echo $total_cats; ?>">0</strong>
+                <strong><?php echo $total_cats; ?></strong>
                 <span>Kategori</span>
             </div>
         </div>
@@ -121,133 +119,8 @@ if (isset($_GET['ajax_search'])) {
 </section>
 
 <style>
-#searchDropdown .search-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid #f0ece0;
-    text-decoration: none;
-    color: #333;
-    transition: background 0.15s;
-}
-#searchDropdown .search-item:last-child { border-bottom: none; }
-#searchDropdown .search-item:hover { background: #f0faf9; }
-#searchDropdown .search-item img {
-    width: 48px; height: 48px; object-fit: cover; border-radius: 8px; flex-shrink: 0;
-}
-#searchDropdown .search-item-info { flex: 1; min-width: 0; }
-#searchDropdown .search-item-name { font-weight: 700; font-size: 0.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-#searchDropdown .search-item-meta { font-size: 0.78rem; color: #7d8165; }
-#searchDropdown .search-empty { padding: 1.25rem; text-align:center; color:#aaa; font-size:0.9rem; }
-#searchDropdown .search-loading { padding: 1rem; text-align:center; color:#2ab7a9; }
+/* Style dropdown dihapus karena tidak lagi menggunakan JavaScript */
 </style>
-
-<script>
-let searchTimer = null;
-
-document.getElementById('searchInput').addEventListener('input', function () {
-    clearTimeout(searchTimer);
-    const q = this.value.trim();
-    if (q.length < 2) {
-        closeDropdown();
-        return;
-    }
-    showLoading();
-    searchTimer = setTimeout(() => fetchResults(q), 300);
-});
-
-document.getElementById('searchInput').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') doSearch();
-    if (e.key === 'Escape') closeDropdown();
-});
-
-function doSearch() {
-    const q = document.getElementById('searchInput').value.trim();
-    if (q.length >= 2) {
-        window.location.href = 'index.php?search=' + encodeURIComponent(q);
-    }
-}
-
-function showLoading() {
-    const dd = document.getElementById('searchDropdown');
-    dd.style.display = 'block';
-    dd.innerHTML = '<div class="search-loading"><i class="ti ti-loader"></i> Mencari...</div>';
-}
-
-function closeDropdown() {
-    document.getElementById('searchDropdown').style.display = 'none';
-}
-
-function fetchResults(q) {
-    fetch('index.php?ajax_search=1&q=' + encodeURIComponent(q))
-        .then(r => r.json())
-        .then(data => {
-            const dd = document.getElementById('searchDropdown');
-            if (data.length === 0) {
-                dd.innerHTML = '<div class="search-empty">Tidak ada destinasi yang cocok untuk "<strong>' + escHtml(q) + '</strong>"</div>';
-            } else {
-                let html = '';
-                data.forEach(p => {
-                    const stars = p.review_count > 0 ? '⭐ ' + parseFloat(p.avg_rating).toFixed(1) + ' (' + p.review_count + ')' : 'Belum ada rating';
-                    html += `<a href="place.php?id=${p.id}" class="search-item">
-                        <img src="assets/img/${escHtml(p.image_url)}" onerror="this.src='assets/img/home.jpg'" alt="${escHtml(p.name)}">
-                        <div class="search-item-info">
-                            <div class="search-item-name">${escHtml(p.name)}</div>
-                            <div class="search-item-meta">${escHtml(p.category_name)} &middot; ${escHtml(p.location)}</div>
-                            <div class="search-item-meta">${stars}</div>
-                        </div>
-                    </a>`;
-                });
-                dd.innerHTML = html;
-            }
-            dd.style.display = 'block';
-        })
-        .catch(() => closeDropdown());
-}
-
-function escHtml(str) {
-    const d = document.createElement('div');
-    d.textContent = str || '';
-    return d.innerHTML;
-}
-
-// Tutup dropdown saat klik di luar
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('.hero-search')) closeDropdown();
-});
-</script>
-
-<script>
-// Animasi counter stats dari database
-document.addEventListener('DOMContentLoaded', function () {
-    const counters = document.querySelectorAll('.counter');
-    const speed = 200;
-    const observer = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const el = entry.target;
-                const target = +el.getAttribute('data-target');
-                if (target === 0) { el.textContent = 0; observer.unobserve(el); return; }
-                const increment = target / speed;
-                let current = 0;
-                const update = () => {
-                    current += increment;
-                    if (current < target) {
-                        el.textContent = Math.ceil(current);
-                        requestAnimationFrame(update);
-                    } else {
-                        el.textContent = target;
-                    }
-                };
-                update();
-                observer.unobserve(el);
-            }
-        });
-    }, { threshold: 0.3 });
-    counters.forEach(c => observer.observe(c));
-});
-</script>
 
 <div class="container">
     <div class="section-header">
