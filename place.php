@@ -31,6 +31,34 @@ if (is_logged_in()) {
     $user_crowd_report = $stmt_uc->fetch() ?: null;
 }
 
+// Parse fasilitas (JSON)
+$facilities_raw = $place['facilities'] ?? '';
+$facilities = [];
+if (!empty($facilities_raw)) {
+    $decoded = json_decode($facilities_raw, true);
+    if (is_array($decoded)) {
+        $facilities = $decoded;
+    }
+}
+
+// Definisi label dan ikon fasilitas
+$facility_info = [
+    'toilet'        => ['label' => 'Toilet',          'icon' => 'ti-toilet-paper'],
+    'parkir'        => ['label' => 'Area Parkir',      'icon' => 'ti-parking'],
+    'wifi'          => ['label' => 'WiFi',             'icon' => 'ti-wifi'],
+    'mushola'       => ['label' => 'Mushola',          'icon' => 'ti-building-mosque'],
+    'restoran'      => ['label' => 'Restoran/Warung',  'icon' => 'ti-tools-kitchen-2'],
+    'atm'           => ['label' => 'ATM / Money Changer','icon' => 'ti-atm'],
+    'aksesibilitas' => ['label' => 'Ramah Difabel',    'icon' => 'ti-wheelchair'],
+    'area_foto'     => ['label' => 'Spot Foto',        'icon' => 'ti-camera'],
+    'penginapan'    => ['label' => 'Penginapan',       'icon' => 'ti-bed'],
+    'souvenir'      => ['label' => 'Toko Souvenir',    'icon' => 'ti-shopping-bag'],
+    'pemandu'       => ['label' => 'Pemandu Wisata',   'icon' => 'ti-user-star'],
+    'camping'       => ['label' => 'Area Camping',     'icon' => 'ti-tent'],
+    'kolam_renang'  => ['label' => 'Kolam Renang',     'icon' => 'ti-swimming'],
+    'pertolongan'   => ['label' => 'P3K / Klinik',     'icon' => 'ti-first-aid-kit'],
+];
+
 // Handle DELETE review (milik sendiri)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_review'])) {
     if (is_logged_in()) {
@@ -436,6 +464,22 @@ require_once 'includes/header.php';
                     <?php endif; ?>
                 <?php endif; ?>
             </div>
+
+            <!-- Fasilitas ringkasan (sidebar) -->
+            <?php if (!empty($facilities)): ?>
+            <div class="info-card">
+                <h4>Fasilitas (<?php echo count($facilities); ?>)</h4>
+                <?php foreach ($facilities as $fac):
+                    $fac_key = strtolower(trim($fac));
+                    $info = $facility_info[$fac_key] ?? ['label' => ucfirst($fac), 'icon' => 'ti-check'];
+                ?>
+                <div class="info-row">
+                    <span class="info-label"><i class="ti <?php echo $info['icon']; ?>" style="margin-right:5px;"></i><?php echo esc($info['label']); ?></span>
+                    <span style="color:#2ab7a9;">✓</span>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
 
             <!-- Tombol aksi -->
             <div class="info-card">
